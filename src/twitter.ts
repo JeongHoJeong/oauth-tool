@@ -19,6 +19,19 @@ function getTwitterOAuthObject({ consumerKey, consumerSecret, callbackUrl }: Twi
   )
 }
 
+interface TwitterGetAuthHeaderOptions extends TwitterOAuthInfoBase, TwitterVerification {
+  url: string
+}
+
+function getAuthHeader(options: TwitterGetAuthHeaderOptions) {
+  const { url } = options
+  const oauth = getTwitterOAuthObject(options)
+
+  const { oauthToken, oauthTokenSecret } = options
+  const header = oauth.authHeader(url, oauthToken, oauthTokenSecret)
+  return header
+}
+
 export async function getTwitterRequestToken(oauthInfo: TwitterOAuthInfoBase) {
   return new Promise<string>((resolve, reject) => {
     const oauth = getTwitterOAuthObject(oauthInfo)
@@ -48,8 +61,12 @@ interface TwitterVerification {
 export async function verifyTwitterOAuthToken(
   oauthToken: string,
   oauthVerifier: string,
+  oauthConsumerKey: string,
 ): Promise<TwitterVerification | undefined> {
-  const url = `https://api.twitter.com/oauth/access_token?oauth_token=${oauthToken}&oauth_verifier=${oauthVerifier}`
+  const url = `https://api.twitter.com/oauth/access_token?` +
+    `oauth_token=${oauthToken}&` +
+    `oauth_verifier=${oauthVerifier}&` +
+    `oauth_consumer_key=${oauthConsumerKey}`
   const result = await fetch(url, {
     method: 'POST',
   })
@@ -68,31 +85,16 @@ export async function verifyTwitterOAuthToken(
           verification.oauthTokenSecret = value
         } else if (key === 'user_id') {
           verification.userId = value
-        } else if (key === 'screen_name' && value === 'NflixShareFeel') {
-          verification.screenName = value
         }
       }
     })
 
-    if (Object.keys(verification).length === 4) {
+    if (Object.keys(verification).length === 3) {
       return verification as TwitterVerification
     }
   }
 
   return
-}
-
-interface TwitterGetAuthHeaderOptions extends TwitterOAuthInfoBase, TwitterVerification {
-  url: string
-}
-
-function getAuthHeader(options: TwitterGetAuthHeaderOptions) {
-  const { url } = options
-  const oauth = getTwitterOAuthObject(options)
-
-  const { oauthToken, oauthTokenSecret } = options
-  const header = oauth.authHeader(url, oauthToken, oauthTokenSecret)
-  return header
 }
 
 export interface TwitterUserInfo {
