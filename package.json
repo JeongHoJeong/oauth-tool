@@ -10,7 +10,7 @@
     "build": "tsc",
     "lint": "eslint src/** tests/** --no-error-on-unmatched-pattern --ext .ts",
     "test": "jest",
-    "prepublish": "build"
+    "prepublish": "yarn build"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
